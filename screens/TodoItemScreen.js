@@ -25,22 +25,40 @@ import {
   Colors
 } from 'react-native/Libraries/NewAppScreen';
 
+const mergeArrayObjects = (arr,obj) => {
+  return arr.map((item,i)=> {
+     if(item && item.id === obj.id){
+         //merging two objects
+       return obj
+     } else {
+       return item
+     }
+  })
+}
+
+const filterItem = (items, id) => {
+  return items.filter(i => {
+    return i.id !== id;
+  });
+}
+
 const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
   const params = route.params || { value: '', done: false}
   const [getTodos, setTodos] = useState([])
   const { getItem, setItem } = useAsyncStorage('@todo');
-  const [id, setId] = React.useState(params.id); 
+  const [ id ] = React.useState(params.id);
+  const [ action ] = React.useState(params.action);
   const [value, onChangeText] = React.useState(params.value);
   const [isEnabled, setIsEnabled] = useState(params.done);
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
   const readItemFromStorage = async () => {
     const item = await getItem();
-    setTodos(JSON.parse(item));
+    setTodos(item ? JSON.parse(item) : []);
   };
 
   const writeItemToStorage = async newValue => {
-    await setItem(newValue);
+    await setItem(JSON.stringify(newValue));
     setTodos(newValue)
   };
 
@@ -49,9 +67,15 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
   }, []);
 
   const handleSave = async (evt) => {
+    let updateItems;
+    if(id) { 
+      updateItems = mergeArrayObjects(getTodos, {id, value, done: isEnabled})
+    } else {
+      updateItems = [...getTodos, {id: getTodos.length + 1, value, done: isEnabled}]
+    } 
     try {
-      await writeItemToStorage(JSON.stringify([{id, value, done: isEnabled}]))
-      navigation.push('Home');
+      await writeItemToStorage(updateItems)
+      navigation.navigate('Home');
     } catch (e) {
       alert('Error to save your todo');
       console.log(e)
@@ -60,8 +84,9 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
 
   const handleDelete = async (evt) => {
     try {
-      await AsyncStorage.removeItem('@todo');
-      navigation.push('Home');
+      const updateItems = filterItem(getTodos, id)
+      await writeItemToStorage(updateItems)
+      navigation.navigate('Home');
     } catch (e) {
       alert('Error to save your todo');
       console.log(e)
@@ -76,13 +101,13 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Todo Item</Text>
+            <Text style={styles.headerTitle}>Todo Item {id}</Text>
           </View>
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Create / Edit todo</Text>
+              <Text style={styles.sectionTitle}>{ action } todo</Text>
               <Text style={styles.sectionDescription}>
-                Please fill the information to ediv / save your todo
+                Please fill the information to {action} your todo
               </Text>
             </View>
             <View style={styles.sectionContainer}>

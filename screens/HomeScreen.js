@@ -8,7 +8,8 @@
  * @flow
  */
 import React, { useState, useEffect } from 'react';
-import { useAsyncStorage } from '@react-native-community/async-storage';
+import AsyncStorage, { useAsyncStorage } from '@react-native-community/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 import {
   SafeAreaView,
@@ -41,15 +42,31 @@ const HomeScreen: () => React$Node = ({ navigation }) => {
   const { getItem } = useAsyncStorage('@todo')
 
   const readItemFromStorage = async () => {
-    //await AsyncStorage.removeItem('@todo');
     const item = await getItem();
-    console.log(item)
+    console.log('item from storage', item)
     setTodos(JSON.parse(item))
   };
+
+  const onDeleteAll = async () => {
+    await AsyncStorage.removeItem('@todo')
+    const item = await getItem();
+    setTodos(JSON.parse(item))
+  }
   
   useEffect(() => {
     readItemFromStorage();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      readItemFromStorage();
+
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [])
+  );
 
   return (
     <>
@@ -74,7 +91,7 @@ const HomeScreen: () => React$Node = ({ navigation }) => {
                     data={getTodos}
                     renderItem={({ item }) => {
                       return (
-                        <TouchableWithoutFeedback onPress={ () => navigation.navigate('TodoItem', { value: item.value, done: item.done}) }>
+                        <TouchableWithoutFeedback onPress={ () => navigation.navigate('TodoItem', { action: 'Update', id: item.id, value: item.value, done: item.done }) }>
                           <View style={styles.sectionContainer}>
                             <Item text={item.value} done={item.done} />
                           </View>
@@ -82,7 +99,6 @@ const HomeScreen: () => React$Node = ({ navigation }) => {
                       )
                     } }
                     keyExtractor={(item, index) => {
-                      console.log('item', item, index)
                       'key' + index
                     }}
                   />
@@ -92,8 +108,16 @@ const HomeScreen: () => React$Node = ({ navigation }) => {
               <Button
                 title="Create an item"
                 color={Colors.white}
-                onPress={() => navigation.navigate('TodoItem')} />
+                onPress={() => navigation.navigate('TodoItem', {action: 'Create'})} />
             </View>
+            { getTodos &&
+              <View style={styles.button}>
+                <Button
+                  title="Delete all"
+                  color={Colors.white}
+                  onPress={onDeleteAll} />
+              </View>
+            }
           </View>
         </ScrollView>
       </SafeAreaView>
