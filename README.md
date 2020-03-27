@@ -24,6 +24,6 @@ and more...
 - I used Async Storage to persist the data, but we could use SQLite or connect to an simple API with authorization tokens set in environment variables
 
 ### Related projects
-Checkout my open source project React Native Ready for learning with an example app: https://github.com/alexanmtz/react-native-ready
+Checkout my open source project React Native Ready, with an example app: https://github.com/alexanmtz/react-native-ready
 
 This app use Redux and a UI Library, and connects with a sample api.
