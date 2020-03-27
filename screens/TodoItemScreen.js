@@ -8,7 +8,7 @@
  * @flow
  */
 import React, { useState, useEffect } from 'react';
-import AsyncStorage, { useAsyncStorage } from '@react-native-community/async-storage';
+import { useAsyncStorage } from '@react-native-community/async-storage';
 import {
   SafeAreaView,
   StyleSheet,
@@ -74,8 +74,12 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
       updateItems = [...getTodos, {id: getTodos.length + 1, value, done: isEnabled}]
     } 
     try {
-      await writeItemToStorage(updateItems)
-      navigation.navigate('Home');
+      if(value) {
+        await writeItemToStorage(updateItems)
+        navigation.navigate('Home');
+      } else {
+        alert('Please fill your todo description')
+      }
     } catch (e) {
       alert('Error to save your todo');
       console.log(e)
@@ -112,7 +116,7 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
             </View>
             <View style={styles.sectionContainer}>
               <TextInput
-                placeholder={'Title'}
+                placeholder={'Description'}
                 style={{ height: 40, borderColor: 'gray', borderWidth: 1 }}
                 onChangeText={text => onChangeText(text)}
                 value={value}
@@ -126,15 +130,15 @@ const TodoItemScreen: () => React$Node = ({ route, navigation }) => {
             <View style={[styles.button, styles.buttonSave]}>
               <Button
                 title="Save"
-                color={Colors.white}
                 onPress={handleSave} />
             </View>
-            <View style={[styles.button, styles.buttonDelete]}>
-              <Button
-                title="Delete"
-                color={Colors.dark}
-                onPress={handleDelete} />
-            </View>
+            {action === 'Update' &&
+              <View style={[styles.button, styles.buttonDelete]}>
+                <Button
+                  title="Delete"
+                  onPress={handleDelete} />
+              </View>
+            } 
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -186,14 +190,17 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: Colors.dark,
+    color: Colors.white,
     marginTop: 24,
     marginBottom: 24,
     padding: 12
   },
   buttonSave: {
+    color: Colors.white,
     backgroundColor: Colors.dark
   },
   buttonDelete: {
+    color: Colors.white,
     backgroundColor: Colors.white
   },
   highlight: {

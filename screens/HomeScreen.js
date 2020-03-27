@@ -107,14 +107,12 @@ const HomeScreen: () => React$Node = ({ navigation }) => {
             <View style={styles.button}>
               <Button
                 title="Create an item"
-                color={Colors.white}
                 onPress={() => navigation.navigate('TodoItem', {action: 'Create'})} />
             </View>
             { getTodos &&
-              <View style={styles.button}>
+              <View style={[styles.button, styles.buttonDelete]}>
                 <Button
                   title="Delete all"
-                  color={Colors.white}
                   onPress={onDeleteAll} />
               </View>
             }
@@ -177,9 +175,14 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: Colors.dark,
+    color: Colors.white,
     marginTop: 24,
     marginBottom: 24,
     padding: 12
+  },
+  buttonDelete: {
+    color: Colors.black,
+    backgroundColor: Colors.white
   },
   highlight: {
     fontWeight: '700',
